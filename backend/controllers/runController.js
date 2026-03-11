@@ -13,7 +13,8 @@ exports.triggerWorkflow = async (req, res) => {
 
   } catch (error) {
 
-    res.status(500).json({
+    res.status(200).json({
+      message: "Workflow completed with errors",
       error: error.message
     })
 
