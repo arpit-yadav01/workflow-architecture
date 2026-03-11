@@ -26,15 +26,15 @@ router.get("/:id/stream", (req, res) => {
 
   const listener = (event) => {
 
-    if (event.runId.toString() === runId) {
+  if (event.runId.toString() === runId) {
 
-      console.log("SSE sending:", event)
+    console.log("SSE sending event:", event)
 
-      res.write(`data: ${JSON.stringify(event)}\n\n`)
-
-    }
+    res.write(`data: ${JSON.stringify(event)}\n\n`)
 
   }
+
+}
 
   eventBus.on("stepUpdate", listener)
 
