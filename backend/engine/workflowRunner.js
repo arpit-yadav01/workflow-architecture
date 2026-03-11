@@ -43,7 +43,7 @@ async function runWorkflow(workflowId, input = {}) {
 
   })
 
-  // Find initial runnable steps
+  // Find first runnable steps
   const readyQueue = []
 
   Object.keys(dependencyCount).forEach(stepId => {
@@ -64,6 +64,14 @@ async function runWorkflow(workflowId, input = {}) {
 
       currentBatch.map(async stepId => {
 
+        // 🔴 Check if workflow cancelled
+        const latestRun = await WorkflowRun.findById(run._id)
+
+        if (latestRun.status === "cancelled") {
+          console.log("Workflow cancelled. Stopping execution.")
+          return
+        }
+
         const step = stepMap[stepId]
 
         const stepRun = await StepRun.create({
@@ -79,13 +87,8 @@ async function runWorkflow(workflowId, input = {}) {
           stepId,
           status: "running"
         })
-        eventBus.emit("stepUpdate", {
-  runId: run._id,
-  stepId,
-  status: "running"
-})
 
-console.log("EVENT EMITTED:", stepId, "running")
+        console.log("EVENT EMITTED:", stepId, "running")
 
         try {
 
@@ -129,7 +132,7 @@ console.log("EVENT EMITTED:", stepId, "running")
 
           await stepRun.save()
 
-          // 🔴 Emit failed event
+          // 🔴 Emit failure event
           eventBus.emit("stepUpdate", {
             runId: run._id,
             stepId,
