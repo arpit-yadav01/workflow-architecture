@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser")
 const connectDB = require("./config/db")
 const authRoutes = require("./routes/authRoutes")
 const workflowRoutes = require("./routes/workflowRoutes")
+const runRoutes = require("./routes/runRoutes")
 dotenv.config()
 
 connectDB()
@@ -22,6 +23,9 @@ app.use(cookieParser())
 
 app.use("/api/auth", authRoutes)
 app.use("/api/workflows", workflowRoutes)
+app.use("/api/runs", runRoutes)
+
+
 app.get("/", (req, res) => {
   res.send("Workflow Engine API Running")
 })
