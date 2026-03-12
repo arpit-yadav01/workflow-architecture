@@ -7,7 +7,6 @@ import ReactFlow, {
 } from "reactflow"
 
 import "reactflow/dist/style.css"
-
 import api from "../api/axios"
 
 let id = 1
@@ -16,48 +15,74 @@ export default function Builder() {
 
   const [nodes, setNodes] = useState([])
   const [edges, setEdges] = useState([])
+  const [selectedNode, setSelectedNode] = useState(null)
 
 
-  // ✅ add node
+  // Add step node
   const addNode = () => {
 
     const newNode = {
       id: String(id++),
-      position: {
-        x: Math.random() * 400,
-        y: Math.random() * 400,
+
+      position: { x: 200, y: 200 },
+
+      data: {
+        label: "Step",
+        type: "delay",
       },
-      data: { label: "Step" },
+
     }
 
     setNodes((nds) => [...nds, newNode])
   }
 
 
-  // ✅ connect nodes
+  // Connect nodes
   const onConnect = useCallback(
-    (params) => {
-      setEdges((eds) => addEdge(params, eds))
-    },
+    (params) => setEdges((eds) => addEdge(params, eds)),
     []
   )
 
 
-  // ✅ build steps
+  // Select node
+  const onNodeClick = (event, node) => {
+    setSelectedNode(node)
+  }
+
+
+  // Update node type
+  const updateNodeType = (type) => {
+
+    setNodes((nds) =>
+      nds.map((n) =>
+        n.id === selectedNode.id
+          ? { ...n, data: { ...n.data, type } }
+          : n
+      )
+    )
+
+    setSelectedNode((prev) => ({
+      ...prev,
+      data: { ...prev.data, type },
+    }))
+
+  }
+
+
+  // Convert nodes → workflow steps
   const buildSteps = () => {
 
     const steps = nodes.map((node) => {
 
       const deps = edges
-        .filter(e => e.target === node.id)
-        .map(e => e.source)
+        .filter((e) => e.target === node.id)
+        .map((e) => e.source)
 
       return {
         stepId: node.id,
-        name: "step",
-        type: "delay",
+        type: node.data.type,
         dependsOn: deps,
-        config: { delayMs: 1000 }
+        config: {},
       }
 
     })
@@ -66,7 +91,7 @@ export default function Builder() {
   }
 
 
-  // ✅ save workflow
+  // Save workflow
   const saveWorkflow = async () => {
 
     try {
@@ -75,11 +100,10 @@ export default function Builder() {
 
       const res = await api.post("/workflows", {
         name: "My Workflow",
-        description: "Created from UI",
-        steps
+        steps,
       })
 
-      console.log("Saved", res.data)
+      console.log("Saved:", res.data)
 
       alert("Workflow saved")
 
@@ -95,20 +119,20 @@ export default function Builder() {
 
   return (
 
-    <div className="w-screen h-screen bg-gray-100">
+    <div className="w-screen h-screen bg-gray-100 relative">
 
-      <div className="flex gap-2 p-2">
+      <div className="p-2 flex gap-2">
 
         <button
           onClick={addNode}
-          className="px-3 py-2 bg-blue-500 text-white"
+          className="bg-blue-500 text-white px-3 py-2"
         >
           Add Step
         </button>
 
         <button
           onClick={saveWorkflow}
-          className="px-3 py-2 bg-purple-600 text-white"
+          className="bg-purple-600 text-white px-3 py-2"
         >
           Save Workflow
         </button>
@@ -122,6 +146,7 @@ export default function Builder() {
           nodes={nodes}
           edges={edges}
           onConnect={onConnect}
+          onNodeClick={onNodeClick}
         >
 
           <Background />
@@ -131,6 +156,34 @@ export default function Builder() {
         </ReactFlow>
 
       </div>
+
+
+      {/* CONFIG PANEL */}
+
+      {selectedNode && (
+
+        <div className="absolute right-0 top-0 w-64 bg-white border p-4 shadow">
+
+          <h3 className="font-bold mb-3">Step Config</h3>
+
+          <label className="block mb-2">Step Type</label>
+
+          <select
+            value={selectedNode.data.type}
+            onChange={(e) => updateNodeType(e.target.value)}
+            className="border p-2 w-full"
+          >
+
+            <option value="delay">delay</option>
+            <option value="http">http</option>
+            <option value="transform">transform</option>
+            <option value="condition">condition</option>
+
+          </select>
+
+        </div>
+
+      )}
 
     </div>
 
