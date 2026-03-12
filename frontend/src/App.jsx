@@ -14,6 +14,7 @@ function App() {
     <BrowserRouter>
 
       <Routes>
+
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
@@ -28,6 +29,15 @@ function App() {
 
         <Route
           path="/builder"
+          element={
+            <Protected>
+              <Builder />
+            </Protected>
+          }
+        />
+
+        <Route
+          path="/builder/:id"
           element={
             <Protected>
               <Builder />

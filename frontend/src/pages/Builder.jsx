@@ -1,4 +1,6 @@
-import { useCallback, useState } from "react"
+import { useCallback, useState, useEffect } from "react"
+import { useParams } from "react-router-dom"
+
 import ReactFlow, {
   addEdge,
   Background,
@@ -13,106 +15,141 @@ let id = 1
 
 export default function Builder() {
 
+  const { id: workflowId } = useParams()
+
   const [nodes, setNodes] = useState([])
   const [edges, setEdges] = useState([])
   const [selectedNode, setSelectedNode] = useState(null)
 
 
-  // Add step node
+  // add node
   const addNode = () => {
 
     const newNode = {
       id: String(id++),
-
       position: { x: 200, y: 200 },
-
-      data: {
-        label: "Step",
-        type: "delay",
-      },
-
+      data: { label: "Step", type: "delay" },
     }
 
-    setNodes((nds) => [...nds, newNode])
+    setNodes(n => [...n, newNode])
+
   }
 
 
-  // Connect nodes
+  // connect
   const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
+    (params) => setEdges(e => addEdge(params, e)),
     []
   )
 
 
-  // Select node
-  const onNodeClick = (event, node) => {
+  const onNodeClick = (e, node) => {
     setSelectedNode(node)
   }
 
 
-  // Update node type
+  // update type
   const updateNodeType = (type) => {
 
-    setNodes((nds) =>
-      nds.map((n) =>
-        n.id === selectedNode.id
-          ? { ...n, data: { ...n.data, type } }
-          : n
-      )
-    )
+    setNodes(nodes.map(n =>
+      n.id === selectedNode.id
+        ? { ...n, data: { ...n.data, type } }
+        : n
+    ))
 
-    setSelectedNode((prev) => ({
-      ...prev,
-      data: { ...prev.data, type },
-    }))
+    setSelectedNode({
+      ...selectedNode,
+      data: { ...selectedNode.data, type }
+    })
 
   }
 
 
-  // Convert nodes → workflow steps
+  // build steps
   const buildSteps = () => {
 
-    const steps = nodes.map((node) => {
+    return nodes.map(node => {
 
       const deps = edges
-        .filter((e) => e.target === node.id)
-        .map((e) => e.source)
+        .filter(e => e.target === node.id)
+        .map(e => e.source)
 
       return {
         stepId: node.id,
         type: node.data.type,
         dependsOn: deps,
-        config: {},
+        config: {}
       }
 
     })
 
-    return steps
   }
 
 
-  // Save workflow
   const saveWorkflow = async () => {
 
-    try {
+    const steps = buildSteps()
 
-      const steps = buildSteps()
+    await api.post("/workflows", {
+      name: "My Workflow",
+      steps
+    })
 
-      const res = await api.post("/workflows", {
-        name: "My Workflow",
-        steps,
+    alert("Saved")
+
+  }
+
+
+  // LOAD WORKFLOW
+
+  useEffect(() => {
+
+    if (!workflowId) return
+
+    loadWorkflow()
+
+  }, [workflowId])
+
+
+  const loadWorkflow = async () => {
+
+    const res = await api.get(`/workflows/${workflowId}`)
+
+    convertToFlow(res.data.steps)
+
+  }
+
+
+  const convertToFlow = (steps) => {
+
+    const newNodes = []
+    const newEdges = []
+
+    steps.forEach((s, i) => {
+
+      newNodes.push({
+        id: s.stepId,
+        position: { x: 100 + i * 150, y: 100 },
+        data: {
+          label: "step",
+          type: s.type || "delay"
+        }
       })
 
-      console.log("Saved:", res.data)
+      s.dependsOn?.forEach(dep => {
 
-      alert("Workflow saved")
+        newEdges.push({
+          id: dep + "-" + s.stepId,
+          source: dep,
+          target: s.stepId
+        })
 
-    } catch (err) {
+      })
 
-      console.error(err)
-      alert("Error saving workflow")
+    })
 
-    }
+    setNodes(newNodes)
+    setEdges(newEdges)
 
   }
 
@@ -121,26 +158,10 @@ export default function Builder() {
 
     <div className="w-screen h-screen bg-gray-100 relative">
 
-      <div className="p-2 flex gap-2">
+      <button onClick={addNode}>Add Step</button>
+      <button onClick={saveWorkflow}>Save</button>
 
-        <button
-          onClick={addNode}
-          className="bg-blue-500 text-white px-3 py-2"
-        >
-          Add Step
-        </button>
-
-        <button
-          onClick={saveWorkflow}
-          className="bg-purple-600 text-white px-3 py-2"
-        >
-          Save Workflow
-        </button>
-
-      </div>
-
-
-      <div className="w-full h-[90vh]">
+      <div style={{ height: "90vh" }}>
 
         <ReactFlow
           nodes={nodes}
@@ -158,20 +179,15 @@ export default function Builder() {
       </div>
 
 
-      {/* CONFIG PANEL */}
-
       {selectedNode && (
 
-        <div className="absolute right-0 top-0 w-64 bg-white border p-4 shadow">
+        <div className="absolute right-0 top-0 w-60 bg-white p-2">
 
-          <h3 className="font-bold mb-3">Step Config</h3>
-
-          <label className="block mb-2">Step Type</label>
+          <h3>Config</h3>
 
           <select
             value={selectedNode.data.type}
             onChange={(e) => updateNodeType(e.target.value)}
-            className="border p-2 w-full"
           >
 
             <option value="delay">delay</option>
