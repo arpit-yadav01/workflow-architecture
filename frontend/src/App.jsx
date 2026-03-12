@@ -6,6 +6,7 @@ import Runs from "./pages/Runs"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 import Protected from "./components/Protected"
+import RunPage from "./pages/RunPage"
 
 function App() {
 
@@ -50,6 +51,17 @@ function App() {
           element={
             <Protected>
               <Runs />
+            </Protected>
+          }
+        />
+
+        {/* ✅ STEP 22 RUN MONITOR ROUTE */}
+
+        <Route
+          path="/runs/:id"
+          element={
+            <Protected>
+              <RunPage />
             </Protected>
           }
         />
