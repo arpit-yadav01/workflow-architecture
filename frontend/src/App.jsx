@@ -1,9 +1,8 @@
+import Builder from "./pages/Builder"
+
 function App() {
-  return (
-    <div className="p-6 text-xl">
-      Workflow Builder UI
-    </div>
-  )
+  return <Builder />
 }
 
 export default App
+
