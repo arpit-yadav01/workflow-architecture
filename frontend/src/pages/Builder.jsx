@@ -22,7 +22,6 @@ export default function Builder() {
   const [selectedNode, setSelectedNode] = useState(null)
 
 
-  // add node
   const addNode = () => {
 
     const newNode = {
@@ -36,7 +35,6 @@ export default function Builder() {
   }
 
 
-  // connect
   const onConnect = useCallback(
     (params) => setEdges(e => addEdge(params, e)),
     []
@@ -48,7 +46,6 @@ export default function Builder() {
   }
 
 
-  // update type
   const updateNodeType = (type) => {
 
     setNodes(nodes.map(n =>
@@ -65,7 +62,6 @@ export default function Builder() {
   }
 
 
-  // build steps
   const buildSteps = () => {
 
     return nodes.map(node => {
@@ -99,8 +95,6 @@ export default function Builder() {
 
   }
 
-
-  // LOAD WORKFLOW
 
   useEffect(() => {
 
@@ -177,29 +171,6 @@ export default function Builder() {
         </ReactFlow>
 
       </div>
-
-
-      {selectedNode && (
-
-        <div className="absolute right-0 top-0 w-60 bg-white p-2">
-
-          <h3>Config</h3>
-
-          <select
-            value={selectedNode.data.type}
-            onChange={(e) => updateNodeType(e.target.value)}
-          >
-
-            <option value="delay">delay</option>
-            <option value="http">http</option>
-            <option value="transform">transform</option>
-            <option value="condition">condition</option>
-
-          </select>
-
-        </div>
-
-      )}
 
     </div>
 

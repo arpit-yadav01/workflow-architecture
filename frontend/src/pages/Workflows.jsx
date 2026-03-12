@@ -12,7 +12,6 @@ export default function Workflows() {
     try {
 
       const res = await api.get("/workflows")
-
       setWorkflows(res.data)
 
     } catch (err) {
@@ -33,7 +32,6 @@ export default function Workflows() {
     try {
 
       const res = await api.post(`/runs/${id}/trigger`)
-
       navigate(`/runs/${res.data._id}`)
 
     } catch (err) {
@@ -57,7 +55,6 @@ export default function Workflows() {
       >
         New Workflow
       </button>
-
 
       {workflows.map(w => (
 

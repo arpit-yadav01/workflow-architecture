@@ -19,52 +19,15 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
-        <Route
-          path="/"
-          element={
-            <Protected>
-              <Workflows />
-            </Protected>
-          }
-        />
+        <Route path="/" element={<Protected><Workflows /></Protected>} />
 
-        <Route
-          path="/builder"
-          element={
-            <Protected>
-              <Builder />
-            </Protected>
-          }
-        />
+        <Route path="/builder" element={<Protected><Builder /></Protected>} />
 
-        <Route
-          path="/builder/:id"
-          element={
-            <Protected>
-              <Builder />
-            </Protected>
-          }
-        />
+        <Route path="/builder/:id" element={<Protected><Builder /></Protected>} />
 
-        <Route
-          path="/runs"
-          element={
-            <Protected>
-              <Runs />
-            </Protected>
-          }
-        />
+        <Route path="/runs" element={<Protected><Runs /></Protected>} />
 
-        {/* ✅ STEP 22 RUN MONITOR ROUTE */}
-
-        <Route
-          path="/runs/:id"
-          element={
-            <Protected>
-              <RunPage />
-            </Protected>
-          }
-        />
+        <Route path="/runs/:id" element={<Protected><RunPage /></Protected>} />
 
       </Routes>
 
